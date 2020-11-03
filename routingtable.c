@@ -10,6 +10,25 @@ int NumRoutes;
 ////////////////////////////////////////////////////////////////
 void InitRoutingTbl (struct pkt_INIT_RESPONSE *InitResponse, int myID){
 	/* ----- YOUR CODE HERE ----- */
+	NumRoutes = 0;
+	//construct initail routing table
+	for (int i = 0;i < InitResponse->no_nbr; i++){
+	  routingTable[i].dest_id = InitResponse->nbrcost[i].nbr;
+	  routingTable[i].next_hop = InitResponse->nbrcost[i].nbr;
+	  routingTable[i].cost = InitResponse->nbrcost[i].cost;
+	  routingTable[i].path[0] = myID;
+	  routingTable[i].path[1] = InitResponse->nbrcost[i].nbr;
+	  routingTable[i].path_len = 2;
+
+	  NumRoutes += 1;
+	}
+
+	routingTable[i].dest_id = myID;
+	routingTable[i].next_hop = myID;
+	routingTable[i].cost = 0;
+	routingTable[i].path_len = 1;
+	routingTable[i].path[0] = myID;
+	NumRoutes += 1;
 	return;
 }
 
@@ -17,13 +36,20 @@ void InitRoutingTbl (struct pkt_INIT_RESPONSE *InitResponse, int myID){
 ////////////////////////////////////////////////////////////////
 int UpdateRoutes(struct pkt_RT_UPDATE *RecvdUpdatePacket, int costToNbr, int myID){
 	/* ----- YOUR CODE HERE ----- */
-	return 0;
+	
 }
 
 
 ////////////////////////////////////////////////////////////////
 void ConvertTabletoPkt(struct pkt_RT_UPDATE *UpdatePacketToSend, int myID){
 	/* ----- YOUR CODE HERE ----- */
+	UpdatePacketToSend->sender_id = myID;
+	UpdatePacketToSend->no_routes = NumRoutes;
+	UpdatePacketToSend->dest_id = routingTable[myID].next_hop;
+
+	for (int i = 0; i < NumRoutes; i++){
+	  UpdatePacketToSend->route[i] = routingTable[i];
+	}
 	return;
 }
 
@@ -51,5 +77,10 @@ void PrintRoutes (FILE* Logfile, int myID){
 ////////////////////////////////////////////////////////////////
 void UninstallRoutesOnNbrDeath(int DeadNbr){
 	/* ----- YOUR CODE HERE ----- */
+    for (int i = 0; i < NumRoutes; i++){
+	  if (routingTable[i].next_hop == DeadNbr){
+	    routingTable[i].cost = INFINITY;
+	  }
+	}
 	return;
 }
